@@ -1,25 +1,81 @@
 import pygame.display
 
+from data.modules.inputs import InputManager
+from data.modules.loader import Loader
+from data.modules.maze import Maze, Dirs
+from data.modules.player import Player
+from data.modules.utils import get_tiled_pos
+
 
 class Game:
 	def __init__(self):
 		self.running = True
 
-		flags = pygame.SCALED | pygame.FULLSCREEN
-		self.window = pygame.display.set_mode((800, 800))
+		using_flags = False
+		flags = pygame.FULLSCREEN
+		self.window = pygame.display.set_mode((800, 800), flags=(flags if using_flags else 0) | pygame.SCALED, vsync=True)
+		self.clock = pygame.time.Clock()
+
+		Loader.load()
+
+		self.camera = pygame.Vector2()
+
+		self.maze = Maze((40, 40))
+
+		self.player = Player((0, 0))
 
 	def handle_events(self):
+		InputManager.reset()
+
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				self.running = False
 
-			if event.type == pygame.KEYDOWN:
+			elif event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_ESCAPE:
 					self.running = False
 
+				if event.key <= 512:
+					InputManager.keys_down[event.key] = True
+
+			elif event.type == pygame.KEYUP:
+				if event.key <= 512:
+					InputManager.keys_up[event.key] = True
+
+			elif event.type == pygame.MOUSEBUTTONDOWN:
+				button = event.button - 1
+				if button <= 2:
+					InputManager.mouse_down[button] = True
+
+			elif event.type == pygame.MOUSEBUTTONUP:
+				button = event.button - 1
+				if button <= 2:
+					InputManager.mouse_up[button] = True
+
 	def update(self):
-		pass
+		delta = self.clock.tick() / 1000 * 60
+		pygame.display.set_caption(f"{round(self.clock.get_fps())}")
+
+		self.maze.update()
+		self.player.update(delta)
+
+		self.camera = self.camera.lerp(self.player.pos - (400, 400), min(0.05 * delta, 1))
+
+	# tile_mouse_pos = get_tiled_pos(pygame.mouse.get_pos() + self.camera)
+	# if 0 <= tile_mouse_pos[0] < self.maze.size[0] and 0 <= tile_mouse_pos[1] < self.maze.size[1]:
+	# 	tile_num = self.maze.tiles[tile_mouse_pos[1]][tile_mouse_pos[0]]
+	# 	print(
+	# 		tile_num,
+	# 		"up:", tile_num & Dirs.UP,
+	# 		"down:", tile_num & Dirs.DOWN,
+	# 		"left:", tile_num & Dirs.LEFT,
+	# 		"right:", tile_num & Dirs.RIGHT
+	# 	)
 
 	def draw(self):
 		self.window.fill("black")
+
+		self.maze.draw(self.window, self.camera)
+		self.player.draw(self.window, self.camera)
+
 		pygame.display.flip()
