@@ -5,7 +5,7 @@ import pygame
 
 from data.modules.constants import TILE_SIZE
 from data.modules.inputs import InputManager
-from data.modules.utils import get_tiled_pos
+from data.modules.utils import man_dist
 from data.modules.walls import HorizontalWall, VerticalWall
 
 
@@ -67,12 +67,110 @@ class Maze:
 				else:
 					self.walls.append(VerticalWall(((col_num + 1) * TILE_SIZE, row_num * TILE_SIZE)))
 
+	def find_path(self, start_pos, end_pos):
+		# It doesn't have to work great, it just has to work
+
+		if start_pos == end_pos:
+			return None
+
+		# Find distance
+		if man_dist(start_pos, end_pos) > 7:
+			return None
+
+		# * x - y
+		x_y_path = []
+		if start_pos[0] <= end_pos[0]:
+			x_path_end = end_pos[0]
+			for x in range(start_pos[0] + 1, end_pos[0] + 1):
+				if self.tiles[start_pos[1]][x - 1] & Dirs.RIGHT == 0:
+					x_path_end = x - 1
+					break
+				x_y_path.append((x, start_pos[1]))
+
+			if start_pos[1] <= end_pos[1]:
+				for y in range(start_pos[1] + 1, end_pos[1] + 1):
+					if self.tiles[y - 1][x_path_end] & Dirs.DOWN == 0:
+						break
+					x_y_path.append((x_path_end, y))
+			else:
+				for y in range(start_pos[1] - 1, end_pos[1] - 1, -1):
+					if self.tiles[y + 1][x_path_end] & Dirs.UP == 0:
+						break
+					x_y_path.append((x_path_end, y))
+		else:
+			x_path_end = end_pos[0]
+			for x in range(start_pos[0] - 1, end_pos[0] - 1, -1):
+				if self.tiles[start_pos[1]][x + 1] & Dirs.LEFT == 0:
+					x_path_end = x + 1
+					break
+				x_y_path.append((x, start_pos[1]))
+
+			if start_pos[1] <= end_pos[1]:
+				for y in range(start_pos[1] + 1, end_pos[1] + 1):
+					if self.tiles[y - 1][x_path_end] & Dirs.DOWN == 0:
+						break
+					x_y_path.append((x_path_end, y))
+
+			else:
+				for y in range(start_pos[1] - 1, end_pos[1] - 1, -1):
+					if self.tiles[y + 1][x_path_end] & Dirs.UP == 0:
+						break
+					x_y_path.append((x_path_end, y))
+
+		# * y - x
+		y_x_path = []
+		if start_pos[1] <= end_pos[1]:
+			y_path_end = end_pos[1]
+			for y in range(start_pos[1] + 1, end_pos[1] + 1):
+				if self.tiles[y - 1][start_pos[0]] & Dirs.DOWN == 0:
+					y_path_end = y - 1
+					break
+				y_x_path.append((start_pos[0], y))
+
+			if start_pos[0] <= end_pos[0]:
+				for x in range(start_pos[0] + 1, end_pos[0] + 1):
+					if self.tiles[y_path_end][x - 1] & Dirs.RIGHT == 0:
+						break
+					y_x_path.append((x, y_path_end))
+			else:
+				for x in range(start_pos[0] - 1, end_pos[0] - 1, -1):
+					if self.tiles[y_path_end][x + 1] & Dirs.LEFT == 0:
+						break
+					y_x_path.append((x, y_path_end))
+		else:
+			y_path_end = end_pos[1]
+			for y in range(start_pos[1] - 1, end_pos[1] - 1, -1):
+				if self.tiles[y + 1][start_pos[0]] & Dirs.UP == 0:
+					y_path_end = y + 1
+					break
+				y_x_path.append((start_pos[0], y))
+
+			if start_pos[0] <= end_pos[0]:
+				for x in range(start_pos[0] + 1, end_pos[0] + 1):
+					if self.tiles[y_path_end][x - 1] & Dirs.RIGHT == 0:
+						break
+					y_x_path.append((x, y_path_end))
+			else:
+				for x in range(start_pos[0] - 1, end_pos[0] - 1, -1):
+					if self.tiles[y_path_end][x + 1] & Dirs.LEFT == 0:
+						break
+					y_x_path.append((x, y_path_end))
+
+		x_y_dist = man_dist(x_y_path[-1], end_pos) if len(x_y_path) > 0 else 1000
+		y_x_dist = man_dist(y_x_path[-1], end_pos) if len(y_x_path) > 0 else 1000
+
+		# Return the path that gets the closest to the destination
+		if x_y_dist <= y_x_dist:
+			return x_y_path
+		else:
+			return y_x_path
+
 	def update(self):
 		if InputManager.keys_down[pygame.K_SPACE]:
 			self.tiles = self._generate_maze((0, 0))
 			self._generate_walls()
 
-	def draw(self, surface: pygame.Surface, camera: pygame.Vector2):
+	def draw_outline(self, surface: pygame.Surface, camera: pygame.Vector2):
 		def draw_hor(c, r):
 			pygame.draw.line(surface, "white", (c * TILE_SIZE - camera.x, (r + 1) * TILE_SIZE - camera.y), ((c + 1) * TILE_SIZE - camera.x, (r + 1) * TILE_SIZE - camera.y))
 
@@ -92,10 +190,11 @@ class Maze:
 				else:
 					draw_vert(col_num, row_num)
 
-		for wall in self.walls:
-			wall.draw(surface, camera)
-
 		pygame.draw.line(surface, "yellow", (-camera.x, -camera.y), (self.size[0] * TILE_SIZE - camera.x, -camera.y))
 		pygame.draw.line(surface, "yellow", (-camera.x, self.size[1] * TILE_SIZE - camera.y), (self.size[0] * TILE_SIZE - camera.x, self.size[1] * TILE_SIZE - camera.y))
 		pygame.draw.line(surface, "yellow", (-camera.x, -camera.y), (-camera.x, self.size[1] * TILE_SIZE - camera.y))
 		pygame.draw.line(surface, "yellow", (self.size[0] * TILE_SIZE - camera.x, -camera.y), (self.size[0] * TILE_SIZE - camera.x, self.size[1] * TILE_SIZE - camera.y))
+
+	def draw(self, surface: pygame.Surface, camera: pygame.Vector2):
+		for wall in self.walls:
+			wall.draw(surface, camera)
