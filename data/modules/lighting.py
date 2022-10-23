@@ -16,6 +16,10 @@ class Lighting:
 		return light_source
 
 	@classmethod
+	def remove_light(cls, light_source):
+		cls.lights.remove(light_source)
+
+	@classmethod
 	def update(cls, delta):
 		for light in cls.lights:
 			light.update(delta)

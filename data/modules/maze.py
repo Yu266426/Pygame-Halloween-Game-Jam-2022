@@ -5,6 +5,7 @@ import pygame
 
 from data.modules.constants import TILE_SIZE
 from data.modules.inputs import InputManager
+from data.modules.tile import Grass
 from data.modules.utils import man_dist
 from data.modules.walls import HorizontalWall, VerticalWall
 
@@ -23,6 +24,11 @@ class Maze:
 		self.tiles: list[list[int]] = self._generate_maze((0, 0))
 		self.walls = []
 		self._generate_walls()
+
+		self.ground_tiles: list[list] = [[None for _ in range(self.size[0])] for __ in range(self.size[1])]
+		for row in range(self.size[1]):
+			for col in range(self.size[0]):
+				self.ground_tiles[row][col] = (Grass((col * TILE_SIZE, row * TILE_SIZE)))
 
 	def _generate_maze(self, start_pos: tuple[int, int]):
 		grid: list[list[int]] = [[0 for _ in range(self.size[0])] for _ in range(self.size[1])]
@@ -196,5 +202,9 @@ class Maze:
 		pygame.draw.line(surface, "yellow", (self.size[0] * TILE_SIZE - camera.x, -camera.y), (self.size[0] * TILE_SIZE - camera.x, self.size[1] * TILE_SIZE - camera.y))
 
 	def draw(self, surface: pygame.Surface, camera: pygame.Vector2):
+		for row in self.ground_tiles:
+			for tile in row:
+				tile.draw(surface, camera)
+
 		for wall in self.walls:
 			wall.draw(surface, camera)

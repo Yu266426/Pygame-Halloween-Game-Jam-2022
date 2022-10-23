@@ -20,9 +20,11 @@ class Game:
 
 		Loader.load()
 
-		self.camera = pygame.Vector2()
-
 		self.maze = Maze((30, 30))
+
+		self.camera = pygame.Vector2()
+		self.camera_max_x = self.maze.size[0] * TILE_SIZE - SCREEN_WIDTH
+		self.camera_max_y = self.maze.size[1] * TILE_SIZE - SCREEN_HEIGHT
 
 		self.player = Player((0, 0))
 
@@ -58,16 +60,22 @@ class Game:
 
 	def update_camera(self, delta):
 		self.camera = self.camera.lerp(self.player.pos - (400, 400), min(2 * delta, 1))
-		if self.camera.x < -200:
-			self.camera.x = -200
-		if self.camera.y < -200:
-			self.camera.y = -200
+
+		buffer = 20
+		if self.camera.x < -buffer:
+			self.camera.x = -buffer
+		if self.camera.x > self.camera_max_x + buffer:
+			self.camera.x = self.camera_max_x + buffer
+
+		if self.camera.y < -buffer:
+			self.camera.y = -buffer
+		if self.camera.y > self.camera_max_y + buffer:
+			self.camera.y = self.camera_max_y + buffer
 
 	def update(self):
 		delta = self.clock.tick() / 1000
 		pygame.display.set_caption(f"{round(self.clock.get_fps())}")
 
-		self.maze.update()
 		self.player.update(delta)
 
 		Lighting.update(delta)
@@ -91,7 +99,7 @@ class Game:
 	# 	)
 
 	def draw(self):
-		self.window.fill("black")
+		self.window.fill((66 * 0.8, 70 * 0.8, 43 * 0.8))
 
 		# if self.path is not None:
 		# 	for tile in self.path:
