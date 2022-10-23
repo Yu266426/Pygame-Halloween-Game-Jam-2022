@@ -1,12 +1,9 @@
 import pygame.display
 
-from data.modules.constants import TILE_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT
+from data.modules.constants import SCREEN_WIDTH, SCREEN_HEIGHT
+from data.modules.game_scene import GameScene
 from data.modules.inputs import InputManager
-from data.modules.lighting import Lighting
 from data.modules.loader import Loader
-from data.modules.maze import Maze, Dirs
-from data.modules.player import Player
-from data.modules.utils import get_tiled_pos
 
 
 class Game:
@@ -20,15 +17,7 @@ class Game:
 
 		Loader.load()
 
-		self.maze = Maze((30, 30))
-
-		self.camera = pygame.Vector2()
-		self.camera_max_x = self.maze.size[0] * TILE_SIZE - SCREEN_WIDTH
-		self.camera_max_y = self.maze.size[1] * TILE_SIZE - SCREEN_HEIGHT
-
-		self.player = Player((0, 0))
-
-		self.path = None
+		self.game_scene = GameScene()
 
 	def handle_events(self):
 		InputManager.reset()
@@ -58,56 +47,15 @@ class Game:
 				if button <= 2:
 					InputManager.mouse_up[button] = True
 
-	def update_camera(self, delta):
-		self.camera = self.camera.lerp(self.player.pos - (400, 400), min(2 * delta, 1))
-
-		buffer = 20
-		if self.camera.x < -buffer:
-			self.camera.x = -buffer
-		if self.camera.x > self.camera_max_x + buffer:
-			self.camera.x = self.camera_max_x + buffer
-
-		if self.camera.y < -buffer:
-			self.camera.y = -buffer
-		if self.camera.y > self.camera_max_y + buffer:
-			self.camera.y = self.camera_max_y + buffer
-
 	def update(self):
 		delta = self.clock.tick() / 1000
 		pygame.display.set_caption(f"{round(self.clock.get_fps())}")
 
-		self.player.update(delta)
-
-		Lighting.update(delta)
-
-		if InputManager.mouse_down[0]:
-			self.path = self.maze.find_path(self.player.tile_pos, get_tiled_pos(pygame.mouse.get_pos() + self.camera))
-			if self.path is not None:
-				self.player.set_path(self.path)
-
-		self.update_camera(delta)
-
-	# tile_mouse_pos = get_tiled_pos(pygame.mouse.get_pos() + self.camera)
-	# if 0 <= tile_mouse_pos[0] < self.maze.size[0] and 0 <= tile_mouse_pos[1] < self.maze.size[1]:
-	# 	tile_num = self.maze.tiles[tile_mouse_pos[1]][tile_mouse_pos[0]]
-	# 	print(
-	# 		tile_num,
-	# 		"up:", tile_num & Dirs.UP,
-	# 		"down:", tile_num & Dirs.DOWN,
-	# 		"left:", tile_num & Dirs.LEFT,
-	# 		"right:", tile_num & Dirs.RIGHT
-	# 	)
+		self.game_scene.update(delta)
 
 	def draw(self):
 		self.window.fill((66 * 0.8, 70 * 0.8, 43 * 0.8))
 
-		# if self.path is not None:
-		# 	for tile in self.path:
-		# 		pygame.draw.rect(self.window, "blue", pygame.Rect(tile[0] * TILE_SIZE - self.camera.x, tile[1] * TILE_SIZE - self.camera.y, TILE_SIZE, TILE_SIZE))
-
-		self.maze.draw(self.window, self.camera)
-		self.player.draw(self.window, self.camera)
-
-		Lighting.draw(self.window, self.camera)
+		self.game_scene.draw(self.window)
 
 		pygame.display.flip()

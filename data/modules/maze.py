@@ -80,7 +80,7 @@ class Maze:
 			return None
 
 		# Find distance
-		if man_dist(start_pos, end_pos) > 7:
+		if man_dist(start_pos, end_pos) > 12:
 			return None
 
 		# * x - y
