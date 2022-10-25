@@ -2,7 +2,7 @@ import sys
 
 import pygame
 
-from data.modules.game import Game
+from data.modules.base.game import Game
 
 if __name__ == '__main__':
 	sys.setrecursionlimit(10000)  # I'm feeling dangerous
