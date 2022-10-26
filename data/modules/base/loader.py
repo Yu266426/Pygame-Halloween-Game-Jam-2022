@@ -8,6 +8,7 @@ from data.modules.base.file import ASSET_DIR
 
 class Loader:
 	images: dict[str, pygame.Surface] = {}
+	sounds: dict[str, pygame.mixer.Sound] = {}
 
 	@classmethod
 	def load(cls):
@@ -17,3 +18,6 @@ class Loader:
 					file_name = file[:-4]
 					image = pygame.image.load(os.path.join(ASSET_DIR, file)).convert_alpha()
 					cls.images[file_name] = pygame.transform.scale(image, (image.get_width() * SCALE, image.get_height() * SCALE))
+				elif file.endswith(".wav"):
+					file_name = file[:-4]
+					cls.sounds[file_name] = pygame.mixer.Sound(os.path.join(ASSET_DIR, file))

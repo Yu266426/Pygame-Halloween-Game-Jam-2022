@@ -28,7 +28,7 @@ class HangingSpider:
 		self.image = Loader.images[random.choice(hanging_spider_options)]
 		self.drawn_image = self.image
 
-		self.radius = self.image.get_height() / 2
+		self.radius = self.image.get_height() * 0.7
 
 		self.ave_num = 20
 		self.throw_vels = []

@@ -1,8 +1,10 @@
 import math
+import os
 
 import pygame
 
 from data.modules.base.constants import SCREEN_WIDTH, SCREEN_HEIGHT, START_EVENT
+from data.modules.base.file import ASSET_DIR
 from data.modules.base.inputs import InputManager
 from data.modules.base.loader import Loader
 from data.modules.text.text import Text
@@ -12,9 +14,13 @@ class StartScene:
 	def __init__(self):
 		self.background = Loader.images["background"]
 
-		self.text = Text((SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0.85), "font.tff", 35, "white", "Press Space To Start")
+		self.text = Text((SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0.85), "font.ttf", 35, "white", "Press Space To Start")
 		self.text_surface = pygame.Surface(self.text.rendered_text[1].size, flags=pygame.SRCALPHA)
 		self.text_surface.blit(self.text.rendered_text[0], (0, 0))
+
+		pygame.mixer.music.load(os.path.join(ASSET_DIR, "start.wav"))
+		pygame.mixer.music.set_volume(0.4)
+		pygame.mixer.music.play(loops=-1)
 
 	def update(self):
 		self.text_surface.set_alpha(int(255 / 2 + math.sin(pygame.time.get_ticks() / 400) * 255 / 2))

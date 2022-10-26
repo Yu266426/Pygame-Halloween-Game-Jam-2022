@@ -10,7 +10,7 @@ class Text:
 		if use_sys:
 			self.font = pygame.freetype.SysFont(font_name, size)
 		else:
-			self.font = pygame.freetype.Font(os.path.join(ASSET_DIR, "font.ttf"), size)
+			self.font = pygame.freetype.Font(os.path.join(ASSET_DIR, font_name), size)
 
 		self.text = text
 		self.text_changed = True
