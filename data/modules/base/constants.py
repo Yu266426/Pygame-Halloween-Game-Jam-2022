@@ -8,3 +8,4 @@ TILE_SIZE = 16 * SCALE
 
 START_EVENT = pygame.event.Event(pygame.event.custom_type())
 WIN_EVENT = pygame.event.Event(pygame.event.custom_type())
+RESTART_EVENT = pygame.event.Event(pygame.event.custom_type())
